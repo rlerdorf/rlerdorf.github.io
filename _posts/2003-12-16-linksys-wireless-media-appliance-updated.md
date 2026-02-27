@@ -52,7 +52,7 @@ various devices and none of that did anything I could
 see/hear.  
 **\[/update\]**  
   
-[![](/assets/images/linksys-wireless-media-appliance-updated/http://www.linksys.com/products/image180/wma11b.jpg)](http://www.amazon.com/exec/obidos/ASIN/B00009PUM0/lerdorf-20)
+[![Linksys WMA11B](/assets/images/linksys-wireless-media-appliance-updated/tv1.Thumb.jpg)](http://www.amazon.com/exec/obidos/ASIN/B00009PUM0/lerdorf-20)
 This looks like a nifty little box that will make it easy to access
 mp3's and photos directly from a remote-control TV-displayed interface.
 Much nicer than needing to stick a PC next to the TV/Stereo in the

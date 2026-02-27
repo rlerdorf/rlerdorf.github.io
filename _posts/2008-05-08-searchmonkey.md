@@ -5,7 +5,7 @@ title: SearchMonkey
 ---
 
 
-![](/assets/images/searchmonkey/sm_logo.Thumb.) One of the things I
+![](/assets/images/searchmonkey/sm_logo.Thumb.jpg) One of the things I
 have been playing with lately is Yahoo\!'s SearchMonkey project. It
 appeals to me on many different levels. The geeky name is a play on
 [GreaseMonkey](http://www.greasespot.net/ "GreaseMonkey"). But instead

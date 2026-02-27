@@ -83,7 +83,6 @@ Plenty of little gripes, but overall it is a useful little machine.
   
 The Bad (with some workarounds)  
   
-![](/assets/images/the-good-the-bad-and-the-ugly-powerbook/../../uploads/synergy.gif)
 
   - For some reason there is no way to do multiple virtual desktops in
     the standard GUI. Desktop
