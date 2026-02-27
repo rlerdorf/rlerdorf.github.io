@@ -32,7 +32,7 @@
 }
 
 body {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   font-size: 18px;
   line-height: 1.7;
   color: var(--text);
@@ -40,8 +40,12 @@ body {
   color-scheme: light dark;
 }
 
-a { color: var(--link); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a { color: var(--link); text-decoration: none; transition: color 0.15s; }
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
 
 .wrapper {
   max-width: 740px;
@@ -68,6 +72,7 @@ a:hover { text-decoration: underline; }
   font-size: 1.6rem;
   font-weight: bold;
   color: var(--text);
+  transition: color 0.15s;
 }
 
 .site-title:hover { text-decoration: none; color: var(--link); }
@@ -97,8 +102,8 @@ a:hover { text-decoration: underline; }
 .post-date {
   display: block;
   color: var(--text-faint);
-  font-size: 0.9rem;
-  font-style: italic;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
   margin-bottom: 0.6rem;
 }
 
@@ -146,7 +151,7 @@ article.post .post-title { font-size: 2rem; margin-bottom: 0.3rem; }
   border-collapse: collapse;
   margin-bottom: 1rem;
   overflow-x: auto;
-  display: block;
+  display: table;
 }
 
 .post-content thead { background: var(--table-stripe); }
@@ -164,6 +169,26 @@ article.post .post-title { font-size: 2rem; margin-bottom: 0.3rem; }
 
 .post-content tbody tr:nth-child(even) {
   background: var(--table-stripe);
+}
+
+.post-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+}
+
+.post-content blockquote {
+  border-left: 3px solid var(--border);
+  padding: 0.25rem 0 0.25rem 1rem;
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+}
+
+.post-content hr {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 2rem 0;
 }
 
 .post-nav { margin-top: 2rem; border-top: 1px solid var(--border-light); padding-top: 1rem; }
