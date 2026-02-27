@@ -5,7 +5,8 @@ date: 2026-02-22
 ---
 
 **Updated:** 2026-02-26
-**Test harness:** `~/admin/test-models.py`
+
+Testing various models for use with OpenClaw.
 
 ## Test Prompts
 

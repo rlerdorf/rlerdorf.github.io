@@ -4,18 +4,50 @@ layout: default
 <div class="post-list">
   {% for post in site.posts %}
   <article class="post-summary">
-    <header>
-      <h2 class="post-title">
-        <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
-      </h2>
-      <time class="post-date" datetime="{{ post.date | date_to_xmlschema }}">
-        {{ post.date | date: "%B %-d, %Y" }}
-      </time>
-    </header>
-    {% if post.excerpt %}
-    <p class="post-excerpt">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
-    {% endif %}
-    <a class="read-more" href="{{ post.url | relative_url }}" aria-label="Read more about {{ post.title | escape }}">Read more &rarr;</a>
+    {%- comment -%}Extract first image or table from post content{%- endcomment -%}
+    {%- assign has_thumb = false -%}
+    {%- assign has_table_thumb = false -%}
+    {%- assign img_parts = post.content | split: '<img' -%}
+    {%- if img_parts.size > 1 -%}
+      {%- assign first_img_tag = img_parts[1] | split: '>' | first -%}
+      {%- assign img_src = first_img_tag | split: 'src="' -%}
+      {%- if img_src.size > 1 -%}
+        {%- assign img_src = img_src[1] | split: '"' | first -%}
+        {%- assign has_thumb = true -%}
+      {%- endif -%}
+    {%- endif -%}
+    {%- unless has_thumb -%}
+      {%- assign table_parts = post.content | split: '<table' -%}
+      {%- if table_parts.size > 1 -%}
+        {%- assign table_inner = table_parts[1] | split: '</table>' | first -%}
+        {%- assign first_table = '<table' | append: table_inner | append: '</table>' -%}
+        {%- assign has_table_thumb = true -%}
+      {%- endif -%}
+    {%- endunless -%}
+
+    <div class="post-summary-body">
+      <header>
+        <h2 class="post-title">
+          <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+        </h2>
+        <time class="post-date" datetime="{{ post.date | date_to_xmlschema }}">
+          {{ post.date | date: "%B %-d, %Y" }}
+        </time>
+      </header>
+      {% if post.excerpt %}
+      <p class="post-excerpt">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
+      {% endif %}
+    </div>
+
+    {%- if has_thumb -%}
+    <a class="post-thumb" href="{{ post.url | relative_url }}" aria-hidden="true">
+      <img src="{{ img_src }}" alt="" loading="lazy">
+    </a>
+    {%- elsif has_table_thumb -%}
+    <a class="post-thumb post-thumb-table" href="{{ post.url | relative_url }}" aria-hidden="true">
+      <div class="table-preview">{{ first_table }}</div>
+    </a>
+    {%- endif -%}
   </article>
   {% else %}
   <p>No posts yet.</p>
