@@ -1,0 +1,37 @@
+---
+layout: post
+title: "On keeping things simple"
+date: 2026-02-20
+---
+
+<p>
+  Complexity is easy. Simplicity is hard. This is true in code, in prose, and in most
+  things worth doing well.
+</p>
+
+<p>
+  Every abstraction you add is a bet that the problem it solves is more common than the
+  confusion it introduces. Sometimes that bet pays off. Often it doesn't.
+</p>
+
+<h2>The cost of abstraction</h2>
+
+<p>
+  When I look at software systems that have aged well, they almost always share a trait:
+  the abstractions are thin and the primitives are exposed. The layers exist to organize,
+  not to hide.
+</p>
+
+<p>
+  When I look at systems that became unmaintainable, the opposite is usually true. Someone
+  built a framework on top of a framework on top of a framework, and now nobody can trace
+  a request from the outside world to the line of code that handles it.
+</p>
+
+<h2>A useful heuristic</h2>
+
+<p>
+  Before adding an abstraction, ask: <em>can I explain what this does in one sentence?</em>
+  If the answer requires more than one sentence, the abstraction may be doing too much —
+  or it may not need to exist at all.
+</p>

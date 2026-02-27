@@ -1,0 +1,114 @@
+/* Reset & base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  line-height: 1.7;
+  color: #222;
+  background: #fff;
+}
+
+a { color: #0066cc; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrapper {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Header */
+.site-header {
+  border-bottom: 1px solid #ddd;
+  padding: 1.5rem 0;
+  margin-bottom: 2.5rem;
+}
+
+.site-title {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #222;
+}
+
+.site-title:hover { text-decoration: none; color: #0066cc; }
+
+.site-description {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+/* Post list (landing page) */
+.post-list .post-summary {
+  border-bottom: 1px solid #eee;
+  padding: 2rem 0;
+}
+
+.post-list .post-summary:last-of-type { border-bottom: none; }
+
+.post-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.post-title a { color: #222; }
+.post-title a:hover { color: #0066cc; text-decoration: none; }
+
+.post-date {
+  display: block;
+  color: #888;
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-bottom: 0.6rem;
+}
+
+.post-excerpt { color: #444; margin-bottom: 0.75rem; }
+
+.read-more { font-size: 0.9rem; }
+
+/* Individual post */
+article.post { padding: 1rem 0 3rem; }
+
+article.post .post-header { margin-bottom: 1.5rem; }
+
+article.post .post-title { font-size: 2rem; margin-bottom: 0.3rem; }
+
+.post-content h2,
+.post-content h3,
+.post-content h4 { margin: 1.5rem 0 0.5rem; }
+
+.post-content p { margin-bottom: 1rem; }
+
+.post-content pre {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.post-content code {
+  background: #f5f5f5;
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+  font-size: 0.9em;
+}
+
+.post-content pre code { background: none; padding: 0; }
+
+.post-content ul,
+.post-content ol { margin: 0 0 1rem 1.5rem; }
+
+.post-nav { margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem; }
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid #ddd;
+  padding: 1.5rem 0;
+  margin-top: 3rem;
+  color: #888;
+  font-size: 0.85rem;
+}

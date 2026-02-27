@@ -1,0 +1,23 @@
+---
+layout: default
+---
+<div class="post-list">
+  {% for post in site.posts %}
+  <article class="post-summary">
+    <header>
+      <h2 class="post-title">
+        <a href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
+      </h2>
+      <time class="post-date" datetime="{{ post.date | date_to_xmlschema }}">
+        {{ post.date | date: "%B %-d, %Y" }}
+      </time>
+    </header>
+    {% if post.excerpt %}
+    <p class="post-excerpt">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
+    {% endif %}
+    <a class="read-more" href="{{ post.url | relative_url }}" aria-label="Read more about {{ post.title | escape }}">Read more &rarr;</a>
+  </article>
+  {% else %}
+  <p>No posts yet.</p>
+  {% endfor %}
+</div>

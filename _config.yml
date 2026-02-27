@@ -1,0 +1,12 @@
+title: Notes
+description: "Rasmus Lerdorf's notes and blog"
+baseurl: ""
+url: "https://rlerdorf.github.io"
+
+permalink: /:year/:month/:day/:title/
+
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
