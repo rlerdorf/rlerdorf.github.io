@@ -15,7 +15,7 @@ layout: default
     {% if post.excerpt %}
     <p class="post-excerpt">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
     {% endif %}
-    <a class="read-more" href="{{ post.url | relative_url }}">Read more &rarr;</a>
+    <a class="read-more" href="{{ post.url | relative_url }}" aria-label="Read more about {{ post.title }}">Read more &rarr;</a>
   </article>
   {% else %}
   <p>No posts yet.</p>
