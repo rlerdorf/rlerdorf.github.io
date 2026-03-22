@@ -4,7 +4,7 @@ title: "OpenClaw Model Research"
 date: 2026-02-22
 ---
 
-**Updated:** 2026-02-26
+**Updated:** 2026-03-22
 
 Testing various models for use with OpenClaw.
 
@@ -131,6 +131,66 @@ The cheapest model tested by a wide margin at $0.03/$0.14 per M tokens — a ful
 
 A disaster for agent tasks despite rock-bottom per-token pricing ($0.10/$0.30). Spawned 41 subagents and consumed 357K input tokens on a simple grocery question with no response. Fired 24 web searches (454K tokens) for weather instead of using the skill. Burned 922K total tokens across 4 tests — the most of any model by 5x. Deceptively cheap per-token but ruinously expensive in practice due to uncontrolled tool loops.
 
+## Round 3 Results (2026-03-22)
+
+Round 3 extended the benchmark to 6 prompts by adding two new tests:
+
+| ID | Prompt | Expects |
+|----|--------|---------|
+| stock | "What's the stock price of Etsy right now?" | Tool use (stock skill), current price |
+| slack\_format | Multi-part formatting test | Slack mrkdwn (not markdown): `*bold*` not `**bold**`, `_italic_` not `_italic_`, plain bullets |
+
+### Round 3 Benchmark Results
+
+| Model | Grocery | Rocket | Weather | General | Stock | Slack | Avg Time | $/M in/out |
+|-------|---------|--------|---------|---------|-------|-------|----------|------------|
+| **GPT-5.4-nano** | ✅ 9s | ✅ 7s | ✅ 8s | ✅ 4s | ⚠️ 10s | ✅ 4s | **7.1s** | $0.20/$1.25 |
+| Mistral Small 2603 | ⚠️ 30s | ✅ 11s | ⚠️ 10s | ✅ 4s | ✅ 6s | ⚠️ 4s | 10.9s | $0.15/$0.60 |
+| MiniMax M2.7 | ✅ 20s | ✅ 15s | ✅ 16s | ✅ 6s | ✅ 14s | ❌ 7s | 13.1s | $0.30/$1.20 |
+| Nemotron 3 Super 120B | ⚠️ 13s | ⚠️ 11s | ✅ 47s | ✅ 4s | ✅ 15s | ❌ 9s | 16.7s | $0.10/$0.50 |
+
+### GPT-5.4-nano — openai/gpt-5.4-nano
+**Score: 5/6 (1⚠️) | Avg: 7.1s | Cost: $0.20/$1.25 per M**
+
+Fastest model in this round and nearly flawless on the benchmark — correctly uses tools (grocery-compare, rocket-launches, weather, stock skills), concise single-message responses, and passes the Slack formatting test with proper mrkdwn. The only ding is the stock test (2 messages, minor chattiness). No hallucination patterns detected.
+
+However, the natural prompt comparison (see below) revealed a significant gap between benchmark and real-world performance: in practice, GPT-5.4-nano avoids tool use and asks clarifying questions instead of acting on available context. The benchmark's structured prompts don't expose this; open-ended real-world queries do.
+
+### Mistral Small 2603 — mistralai/mistral-small-2503
+**Score: 3/6 (3⚠️) | Avg: 10.9s | Cost: $0.15/$0.60 per M**
+
+Inexpensive and fast, but inconsistent. Passes rocket and stock cleanly. The grocery, weather, and slack tests all get ⚠️ — chatty responses (2+ messages) or minor formatting deviations. Not chatty in the problematic "let me check..." sense, more extra context tacked on. Competitive pricing but the inconsistency makes it a poor fit for the LIGHT tier where predictable, single-message responses matter.
+
+### MiniMax M2.7 — minimax/minimax-m2.7
+**Score: 5/6 (1❌) | Avg: 13.1s | Cost: $0.30/$1.20 per M**
+
+Strong benchmark performance — passes 5/6 cleanly with correct tool routing, good response quality, and no chattiness. The sole failure is Slack formatting: produces `**bold**` markdown instead of `*bold*` mrkdwn. This is the same issue as M2.5 and M2 before it — the entire MiniMax family uses markdown conventions and doesn't adapt to Slack's mrkdwn dialect.
+
+The natural prompt comparison showed excellent real-world quality: proactively used tools, gave thorough and accurate answers to all three questions, and cost just $0.014 for 3 queries vs Grok's $0.035. The Slack formatting issue is the only thing keeping it out of production. A post-processor that converts `**text**` → `*text*` would make this a serious Grok alternative at 40% lower cost.
+
+### NVIDIA Nemotron 3 Super 120B — nvidia/llama-3.1-nemotron-ultra-253b-v1
+**Score: 3/6 (2⚠️ 2❌) | Avg: 16.7s | Cost: $0.10/$0.50 per M**
+
+Attractive per-token pricing but weak benchmark results. The grocery and rocket tests get ⚠️ (correct answers, tool errors or chattiness). The slack_format test is a hard ❌ — uses markdown instead of mrkdwn. The grocery test also ❌ due to formatting issues. Weather at 47s is slow. High token consumption (255K input tokens on complex tasks). The per-token price is compelling but total cost per task is high, and the formatting failures in Slack context are disqualifying for production use.
+
+## Natural Prompt Comparison (2026-03-22)
+
+The benchmark uses structured prompts designed to test specific capabilities. To evaluate real-world suitability, three open-ended personal assistant questions were run through Grok 4.1 Fast, GPT-5.4-nano, and MiniMax M2.7 via `compare-models.py`:
+
+1. "When is Christine's flight today and when do you think we should leave to drive to the airport?"
+2. "What time tomorrow would it be best for me to go for a run?"
+3. "Is there anything interesting happening around here this weekend?"
+
+| Model | Q1 | Q2 | Q3 | Total Cost | Notes |
+|-------|----|----|-----|------------|-------|
+| Grok 4.1 Fast | ✅ | ✅ | ✅ | $0.035 | Proactive tool use, comprehensive, excellent quality |
+| MiniMax M2.7 | — | ✅ | ✅ | $0.014 | Strong answers, `**markdown**` formatting instead of mrkdwn |
+| GPT-5.4-nano | ❌ | ❌ | ❌ | $0.006 | Asks clarifying questions instead of using available tools |
+
+GPT-5.4-nano's benchmark score (5/6) doesn't reflect its real-world behavior. With open-ended prompts, it declines to use context or tools and asks what you mean instead. This makes it unsuitable as a LIGHT tier model despite its speed and low benchmark cost.
+
+MiniMax M2.7 is the most interesting finding: at $0.014 for 3 queries vs Grok's $0.035, it's 2.5x cheaper with answer quality that rivals Grok. The only production blocker is Slack formatting — it uses `**bold**` where Slack requires `*bold*`. A thin post-processing step converting markdown bold/italic conventions to mrkdwn would make MiniMax M2.7 a strong LIGHT tier alternative.
+
 ## Current Router Configuration
 
 ```
@@ -150,6 +210,12 @@ HEAVY  → anthropic/claude-sonnet-4.6  ($3.00/M in, $15.00/M out)
 4. **Grok 4.1 Fast is the sweet spot.** At 2 cents per 4-test run with 4/4 pass rate, it's the best value by a wide margin. Gemini 3 Flash is a good backup at 5 cents.
 
 5. **Claude Sonnet justifies its premium only for HEAVY tasks.** It's the fastest and produces the best responses, but at 9x the cost of Grok, reserve it for complex multi-step reasoning.
+
+6. **Benchmark scores don't predict real-world behavior.** GPT-5.4-nano scores 5/6 on structured prompts but fails completely on open-ended personal assistant queries — it asks clarifying questions instead of using available tools. Always test with natural, open-ended prompts before deploying.
+
+7. **MiniMax M2.7 is a strong Grok alternative at 2.5x lower cost.** Passes 5/6 benchmark tests and matches Grok quality on real-world queries. The only blocker is Slack formatting (uses `**markdown**` instead of mrkdwn `*bold*`). A post-processing step could close this gap.
+
+8. **The MiniMax family has a persistent Slack formatting blind spot.** M2, M2.5, and M2.7 all use markdown conventions and don't adapt to Slack's mrkdwn dialect. This appears to be a training data issue, not a capability gap.
 
 ## OpenRouter Compliance Audit (2026-02-26)
 
