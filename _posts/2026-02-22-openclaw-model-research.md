@@ -20,12 +20,15 @@ Testing various models for use with OpenClaw.
 
 ## Results Summary
 
-Sorted by $/M input (cheapest first). Round 1/2 models tested on 4 prompts; Round 3 models tested on 5 (adds Stock). `—` = not tested.
+Sorted by $/M input (cheapest first). Round 1/2 models tested on 4 prompts; Round 3/4 models tested on 5 (adds Stock). `—` = not tested or not viable.
 
 | Model | Grocery | Rocket | Weather | General | Stock | Avg Time | $/M in | $/M out |
 |-------|---------|--------|---------|---------|-------|----------|--------|---------|
 | GPT-oss-20b | ⚠️ 15s | ✅ 9s | ❌ 2s | ✅ 2s | — | 7.0s | $0.03 | $0.14 |
 | GPT-oss-120b | ❌ 17s | ✅ 14s | ✅ 13s | ✅ 8s | — | 12.8s | $0.04 | $0.19 |
+| Mistral Small 3.2 24B | ⚠️ 10.5s | ⚠️ 7.0s | ✅ 8.1s | ✅ 3.8s | ❌ 17.1s | 9.3s | $0.07 | $0.20 |
+| Qwen3 235B | ⚠️ 62.9s | ✅ 25.7s | ⚠️ 74.0s | ✅ 4.7s | ⚠️ 91.6s | 51.8s | $0.07 | $0.10 |
+| Llama 4 Scout | ❌ 5.6s | ❌ 4.4s | ❌ 6.3s | ✅ 3.9s | ❌ 9.4s | — | $0.08 | $0.30 |
 | Devstral Small | ❌ 58s | ⚠️ 50s | ❌ 53s | ✅ 2s | — | 40.9s | $0.10 | $0.30 |
 | Nemotron 3 Super 120B | ⚠️ 13s | ⚠️ 11s | ✅ 47s | ✅ 4s | ✅ 15s | 18.0s | $0.10 | $0.50 |
 | GPT-4o-mini | ⚠️ 35s | ✅ 16s | ⚠️ 31s | ✅ 10s | — | 22.9s | $0.15 | $0.60 |
@@ -53,6 +56,10 @@ Sorted by $/M input (cheapest first). Round 1/2 models tested on 4 prompts; Roun
 | Local ollama/qwen3:14b | Used web_search instead of skill tools. 14B too small for OpenClaw prompts. |
 | Local ollama/glm-4.7-flash | Wrong tools + hallucinated. Same issue as qwen3:14b. |
 | Local ollama/qwen3.5:35b | Too large for 24GB VRAM with OpenClaw's ~19K token system prompt. |
+| Mistral Small 3.1 24B — mistralai/mistral-small-3.1-24b-instruct | No tool use support via OpenRouter (404: no endpoints found that support tool use). All 6 benchmark tests fail immediately. Dead on arrival for any agent workflow. Pricing ($0.03/$0.11 per M) is irrelevant without tool support. |
+| Gemini 2.5 Flash Lite — google/gemini-2.5-flash-lite | Refuses to use skill tools on every tool-required test. Grocery: "The grocery comparison tool is not available." Weather: "the tool seems to be unavailable right now." Stock: two turns, no tool calls. Only the no-tool general test passes. Fast but fundamentally broken for agent workflows. ($0.10/$0.40 per M) |
+| Llama 4 Scout — meta-llama/llama-4-scout | Catastrophically broken output. Responses include raw chat template markers (`<\|header_start\|>assistant<\|header_end\|>`) and tool calls rendered as plain text (`memory_search(query="next rocket launch")`). The model is not correctly instruction-tuned for the OpenRouter API format. ($0.08/$0.30 per M) |
+| Qwen3 235B — qwen/qwen3-235b-a22b-2507 | Correct tool routing throughout, but 25–92s per prompt and 74K–374K input tokens per query. At 51.8s average, it's unusable for real-time chat. Interesting for batch/offline tasks but not for an interactive assistant. ($0.07/$0.10 per M) |
 
 ## Model Notes
 
@@ -197,14 +204,49 @@ After the Round 3 benchmark, MiniMax M2.7 was deployed as LIGHT tier for real-wo
 
 **Context size is not the issue.** The earlier timeout when first deploying MiniMax was transient — a service blip, not a fundamental problem. Direct API tests at full OpenClaw context size (64k chars system prompt, 26 tool definitions) consistently return in 4–7s. The router sends requests to OpenRouter's Anthropic-compatible `/v1/messages` endpoint, which MiniMax handles without issue.
 
-**Instruction following breaks down on error handling.** When a Slack emoji reaction failed (unknown emoji name), MiniMax posted the error to the channel: `Message: 1774351696.463889 failed`. AGENTS.md explicitly says to silently ignore reaction failures — never report them to the channel. Grok follows this instruction reliably; MiniMax did not. This is a critical failure for a Slack bot where agent errors must never surface to users.
+**Tool parameter naming.** MiniMax (and Grok) both send `emojiName` instead of `emoji` when calling the Slack react tool — a mismatch with OpenClaw's tool schema. This caused failed reactions that occasionally leaked error messages to the Slack channel. Fixed at the router level with a tool input normalization pass that rewrites `emojiName→emoji` before the gateway executes the call.
 
-**Verdict: promising but not ready for LIGHT tier.** MiniMax M2.7 is cost-effective and benchmark-clean, but the instruction-following gap on error handling makes it unsuitable for production use in the current setup. Grok 4.1 Fast was restored as LIGHT tier. MiniMax M2.7 may become viable as instruction-following improves in future versions.
+**Verdict: back on LIGHT tier.** With the router-level fix in place, MiniMax M2.7 is the best cost/performance option for LIGHT — 2.5x cheaper per query than Grok in natural prompt tests with comparable answer quality and a clean 5/5 benchmark.
+
+## Round 4 Results (2026-03-24)
+
+Round 4 tested four models at the low-cost end of the OpenRouter catalog (all under $0.10/M input), looking for candidates that could challenge MiniMax M2.7 on the LIGHT tier.
+
+### Round 4 Benchmark Results
+
+| Model | Grocery | Rocket | Weather | General | Stock | Avg Time | $/M in/out |
+|-------|---------|--------|---------|---------|-------|----------|------------|
+| Mistral Small 3.2 24B | ⚠️ 10.5s | ⚠️ 7.0s | ✅ 8.1s | ✅ 3.8s | ❌ 17.1s | 9.3s | $0.07/$0.20 |
+| Qwen3 235B | ⚠️ 62.9s | ✅ 25.7s | ⚠️ 74.0s | ✅ 4.7s | ⚠️ 91.6s | 51.8s | $0.07/$0.10 |
+| Llama 4 Scout | ❌ 5.6s | ❌ 4.4s | ❌ 6.3s | ✅ 3.9s | ❌ 9.4s | — | $0.08/$0.30 |
+| Gemini 2.5 Flash Lite | ❌ 5.9s | ❌ 4.5s | ❌ 5.5s | ✅ 5.6s | ❌ 7.9s | — | $0.10/$0.40 |
+
+### Mistral Small 3.2 24B — mistralai/mistral-small-3.2-24b-instruct
+**Score: 2/5 (2⚠️, 1❌) | Avg: 9.3s | Cost: $0.07/$0.20 per M**
+
+Tool calling works — a significant fix over 3.1's complete failure. Weather and general pass cleanly. Grocery ran the right tools (5 turns) but returned no store names. Rocket reached for `memory_search` instead of the rocket-launches skill. Stock hit 8 consecutive tool errors across 9 turns and gave up with an apology. Fast response time but unreliable tool selection — not competitive with MiniMax M2.7.
+
+### Gemini 2.5 Flash Lite — google/gemini-2.5-flash-lite
+**Score: 1/5 | Cost: $0.10/$0.40 per M**
+
+Actively refuses to use skill tools. Grocery: *"The grocery comparison tool is not available."* Weather: *"the tool seems to be unavailable right now."* Stock: two turns, no tool calls, an apology. Only the no-tool general test passes. Fast and cheap per token, but broken for any agent workflow that requires skill use.
+
+### Llama 4 Scout — meta-llama/llama-4-scout
+**Score: 1/5 | Cost: $0.08/$0.30 per M**
+
+Catastrophically broken output. Responses contain raw chat template markers (`<|header_start|>assistant<|header_end|>`) and tool calls rendered as plain text (`memory_search(query="next rocket launch")`). The one passing test barely counts: `[[reply_to_current]] The capital of Denmark is Copenhagen.` — the `[[reply_to_current]]` prefix is leaked internal syntax. This model is not correctly instruction-tuned for OpenRouter's API format.
+
+### Qwen3 235B — qwen/qwen3-235b-a22b-2507
+**Score: 2/5 (3⚠️) | Avg: 51.8s | Cost: $0.07/$0.10 per M**
+
+Technically the most capable of the four: correct tool routing on every test, no hallucination, and real answers (ETSY at $52.20, -1.21%). But 25–92s per prompt and 74K–374K input tokens per query make it unusable for real-time chat. Weather alone took 74s across 10 turns reading 286K tokens. At $0.10/M output it's cheap per token, but at 374K input tokens for a stock question the per-query cost balloons. An interesting model for batch or offline tasks, not for an interactive assistant.
+
+**Round 4 verdict:** No model from this batch challenges MiniMax M2.7. MiniMax remains the best LIGHT tier option.
 
 ## Current Router Configuration
 
 ```
-LIGHT  → x-ai/grok-4.1-fast          ($0.20/M in, $0.50/M out)
+LIGHT  → minimax/minimax-m2.7         ($0.30/M in, $1.20/M out)
 MEDIUM → x-ai/grok-4.1-fast          ($0.20/M in, $0.50/M out)
 HEAVY  → anthropic/claude-sonnet-4.6  ($3.00/M in, $15.00/M out)
 ```
@@ -223,7 +265,7 @@ HEAVY  → anthropic/claude-sonnet-4.6  ($3.00/M in, $15.00/M out)
 
 6. **Benchmark scores don't predict real-world behavior.** GPT-5.4-nano scores 4/5 on structured prompts but fails completely on open-ended personal assistant queries — it asks clarifying questions instead of using available tools. Always test with natural, open-ended prompts before deploying.
 
-7. **MiniMax M2.7 wins on benchmarks but fails on instruction following.** Clean 5/5 benchmark and 2.5x cheaper per query than Grok in natural prompt tests. But in production it posted Slack API errors to the channel despite explicit instructions to silently ignore failures. Benchmark scores don't catch instruction-following edge cases — only real-world deployment does.
+7. **MiniMax M2.7 is the best LIGHT tier option.** Clean 5/5 benchmark, 2.5x cheaper per query than Grok in natural prompt tests, and handles the full OpenClaw context (64k chars, 26 tools) without issue. A tool parameter naming mismatch (`emojiName` vs `emoji`) caused early friction but was fixed at the router level — the underlying capability was never in question.
 
 ## OpenRouter Compliance Audit (2026-02-26)
 
