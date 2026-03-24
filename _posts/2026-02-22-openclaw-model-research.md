@@ -4,7 +4,7 @@ title: "OpenClaw Model Research"
 date: 2026-02-22
 ---
 
-**Updated:** 2026-03-22
+**Updated:** 2026-03-24
 
 Testing various models for use with OpenClaw.
 
@@ -161,10 +161,12 @@ However, the natural prompt comparison (see below) revealed a significant gap be
 
 Inexpensive and fast, but inconsistent. Passes rocket and stock cleanly. Grocery and weather both get ⚠️ — chatty responses (2+ messages) with extra context tacked on rather than the problematic "let me check..." intermediate spam. Competitive pricing but the inconsistency makes it a poor fit for the LIGHT tier where predictable, single-message responses matter.
 
-### MiniMax M2.7 — minimax/minimax-m2.7 ⭐ Router LIGHT + MEDIUM
-**Score: 5/5 ✅ | Avg: 14.2s | Cost: $0.30/$1.20 per M | Current: LIGHT + MEDIUM tier**
+### MiniMax M2.7 — minimax/minimax-m2.7
+**Score: 5/5 ✅ | Avg: 14.2s | Cost: $0.30/$1.20 per M**
 
 Clean 5/5 pass with correct tool routing, good response quality, and no chattiness — the best benchmark score of any model in Round 3. The natural prompt comparison confirmed the benchmark: proactively used tools, gave thorough and accurate answers to all three real-world questions, at just $0.014 for 3 queries vs Grok's $0.035. At $0.30/$1.20 per M it's 1.5x the input cost of Grok but roughly 2.5x cheaper per query in practice due to lower token consumption. A strong upgrade to the MiniMax M2 and M2.5 predecessors which struggled with chattiness.
+
+See the [Real-World Deployment Testing](#real-world-deployment-testing-2026-03-24) section for production findings.
 
 ### NVIDIA Nemotron 3 Super 120B — nvidia/llama-3.1-nemotron-ultra-253b-v1
 **Score: 3/5 (2⚠️) | Avg: 18.0s | Cost: $0.10/$0.50 per M**
@@ -187,13 +189,23 @@ The benchmark uses structured prompts designed to test specific capabilities. To
 
 GPT-5.4-nano's benchmark score (4/5) doesn't reflect its real-world behavior. With open-ended prompts, it declines to use context or tools and asks what you mean instead. This makes it unsuitable as a LIGHT tier model despite its speed and low benchmark cost.
 
-MiniMax M2.7 is the standout finding: at $0.014 for 3 queries vs Grok's $0.035, it's 2.5x cheaper with answer quality that rivals Grok. It's now running as the LIGHT and MEDIUM tier model.
+MiniMax M2.7 is the standout finding: at $0.014 for 3 queries vs Grok's $0.035, it's 2.5x cheaper with answer quality that rivals Grok. See [Real-World Deployment Testing](#real-world-deployment-testing-2026-03-24) for how it held up in production.
+
+## Real-World Deployment Testing (2026-03-24)
+
+After the Round 3 benchmark, MiniMax M2.7 was deployed as LIGHT tier for real-world testing in the Slack bot. Key findings:
+
+**Context size is not the issue.** The earlier timeout when first deploying MiniMax was transient — a service blip, not a fundamental problem. Direct API tests at full OpenClaw context size (64k chars system prompt, 26 tool definitions) consistently return in 4–7s. The router sends requests to OpenRouter's Anthropic-compatible `/v1/messages` endpoint, which MiniMax handles without issue.
+
+**Instruction following breaks down on error handling.** When a Slack emoji reaction failed (unknown emoji name), MiniMax posted the error to the channel: `Message: 1774351696.463889 failed`. AGENTS.md explicitly says to silently ignore reaction failures — never report them to the channel. Grok follows this instruction reliably; MiniMax did not. This is a critical failure for a Slack bot where agent errors must never surface to users.
+
+**Verdict: promising but not ready for LIGHT tier.** MiniMax M2.7 is cost-effective and benchmark-clean, but the instruction-following gap on error handling makes it unsuitable for production use in the current setup. Grok 4.1 Fast was restored as LIGHT tier. MiniMax M2.7 may become viable as instruction-following improves in future versions.
 
 ## Current Router Configuration
 
 ```
-LIGHT  → minimax/minimax-m2.7        ($0.30/M in, $1.20/M out)
-MEDIUM → minimax/minimax-m2.7        ($0.30/M in, $1.20/M out)
+LIGHT  → x-ai/grok-4.1-fast          ($0.20/M in, $0.50/M out)
+MEDIUM → x-ai/grok-4.1-fast          ($0.20/M in, $0.50/M out)
 HEAVY  → anthropic/claude-sonnet-4.6  ($3.00/M in, $15.00/M out)
 ```
 
@@ -211,7 +223,7 @@ HEAVY  → anthropic/claude-sonnet-4.6  ($3.00/M in, $15.00/M out)
 
 6. **Benchmark scores don't predict real-world behavior.** GPT-5.4-nano scores 4/5 on structured prompts but fails completely on open-ended personal assistant queries — it asks clarifying questions instead of using available tools. Always test with natural, open-ended prompts before deploying.
 
-7. **MiniMax M2.7 is the new LIGHT/MEDIUM tier model.** Clean 5/5 benchmark, matches Grok quality on real-world queries, and costs 2.5x less per query in practice. The MiniMax family has improved significantly from M2 to M2.7 — M2 and M2.5 struggled with chattiness, M2.7 is clean.
+7. **MiniMax M2.7 wins on benchmarks but fails on instruction following.** Clean 5/5 benchmark and 2.5x cheaper per query than Grok in natural prompt tests. But in production it posted Slack API errors to the channel despite explicit instructions to silently ignore failures. Benchmark scores don't catch instruction-following edge cases — only real-world deployment does.
 
 ## OpenRouter Compliance Audit (2026-02-26)
 
