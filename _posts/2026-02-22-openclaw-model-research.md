@@ -4,7 +4,7 @@ title: "OpenClaw Model Research"
 date: 2026-02-22
 ---
 
-**Updated:** 2026-03-24
+**Updated:** 2026-04-02
 
 Testing various models for use with OpenClaw.
 
@@ -24,6 +24,7 @@ Sorted by $/M input (cheapest first). Round 1/2 models tested on 4 prompts; Roun
 
 | Model | Grocery | Rocket | Weather | General | Stock | Avg Time | $/M in | $/M out |
 |-------|---------|--------|---------|---------|-------|----------|--------|---------|
+| **Qwen 3.6 Plus (free)** | ⚠️ 22s | ⚠️ 21s | ✅ 13s | ✅ 5s | ✅ 13s | 14.6s | FREE | FREE |
 | GPT-oss-20b | ⚠️ 15s | ✅ 9s | ❌ 2s | ✅ 2s | — | 7.0s | $0.03 | $0.14 |
 | GPT-oss-120b | ❌ 17s | ✅ 14s | ✅ 13s | ✅ 8s | — | 12.8s | $0.04 | $0.19 |
 | Mistral Small 3.2 24B | ⚠️ 10.5s | ⚠️ 7.0s | ✅ 8.1s | ✅ 3.8s | ❌ 17.1s | 9.3s | $0.07 | $0.20 |
@@ -60,6 +61,7 @@ Sorted by $/M input (cheapest first). Round 1/2 models tested on 4 prompts; Roun
 | Gemini 2.5 Flash Lite — google/gemini-2.5-flash-lite | Refuses to use skill tools on every tool-required test. Grocery: "The grocery comparison tool is not available." Weather: "the tool seems to be unavailable right now." Stock: two turns, no tool calls. Only the no-tool general test passes. Fast but fundamentally broken for agent workflows. ($0.10/$0.40 per M) |
 | Llama 4 Scout — meta-llama/llama-4-scout | Catastrophically broken output. Responses include raw chat template markers (`<\|header_start\|>assistant<\|header_end\|>`) and tool calls rendered as plain text (`memory_search(query="next rocket launch")`). The model is not correctly instruction-tuned for the OpenRouter API format. ($0.08/$0.30 per M) |
 | Qwen3 235B — qwen/qwen3-235b-a22b-2507 | Correct tool routing throughout, but 25–92s per prompt and 74K–374K input tokens per query. At 51.8s average, it's unusable for real-time chat. Interesting for batch/offline tasks but not for an interactive assistant. ($0.07/$0.10 per M) |
+| Gemma 4 31B IT — google/gemma-4-31b-it | Complete failure across all 5 tests — 0 tokens, no tool calls, no response. Agent retried 4× per question (~25s each) and got nothing back. Likely a tool-calling format incompatibility with OpenClaw's schema. ($0.14/$0.40 per M) |
 
 ## Model Notes
 
@@ -242,6 +244,35 @@ Catastrophically broken output. Responses contain raw chat template markers (`<|
 Technically the most capable of the four: correct tool routing on every test, no hallucination, and real answers (ETSY at $52.20, -1.21%). But 25–92s per prompt and 74K–374K input tokens per query make it unusable for real-time chat. Weather alone took 74s across 10 turns reading 286K tokens. At $0.10/M output it's cheap per token, but at 374K input tokens for a stock question the per-query cost balloons. An interesting model for batch or offline tasks, not for an interactive assistant.
 
 **Round 4 verdict:** No model from this batch challenges MiniMax M2.7. MiniMax remains the best LIGHT tier option.
+
+## Round 5 Results (2026-04-02)
+
+Round 5 tested two new models: Google's Gemma 4 31B Instruct and Qwen's new 3.6 Plus on the free tier.
+
+### Round 5 Benchmark Results
+
+| Model | Grocery | Rocket | Weather | General | Stock | Avg Time | $/M in/out |
+|-------|---------|--------|---------|---------|-------|----------|------------|
+| **Qwen 3.6 Plus (free)** | ⚠️ 22s | ⚠️ 21s | ✅ 13s | ✅ 5s | ✅ 13s | 14.6s | FREE |
+| Gemma 4 31B IT | ❌ 26s | ❌ 26s | ❌ 25s | ❌ 25s | ❌ 25s | 25.5s | $0.14/$0.40 |
+
+### Qwen 3.6 Plus — qwen/qwen3.6-plus:free 🆕 Free tier candidate
+**Score: 3/5 (2⚠️) | Avg: 14.6s | Cost: FREE | Tokens: ~504K in / 3K out**
+
+Strong free model with correct tool routing on every test. Reads SKILL.md, runs the right scripts, returns accurate real data — no hallucinations, no silent completions. The two WARNs are minor: grocery sent 2 messages instead of 1, and rocket had 1 tool error but still returned a correct single-message response with real launch data.
+
+**Natural prompt test (2026-04-02):** Ran 3 open-ended questions via `compare-models.py`. Q1 (Christine's flight): correctly checked FLIGHTS.md and reported no flight found — clean handling of a "not found" result. Q2 (run timing): pulled actual hourly forecast for Jupiter and gave a specific recommendation (6–7 AM, ~23°C, 66% humidity) with an evening fallback — comparable depth to Grok. Q3 (weekend events): found Man of La Mancha's final weekend at Maltz Jupiter Theatre, Warriors home game, and date-night workshops in West Palm Beach. Total cost: $0.00 for 3 questions.
+
+Compared to Arcee Trinity (the previous best free model, which timed out on grocery at 181s), Qwen 3.6 Plus finished grocery in 22s with correct data. Best free model tested to date.
+
+**Verdict:** Viable fallback for the LIGHT tier when cost is the primary constraint. Not switching from MiniMax M2.7, but worth keeping as a named fallback option.
+
+### Gemma 4 31B IT — google/gemma-4-31b-it 🆕 ❌ Ruled out
+**Score: 0/5 | Avg: 25.5s | Cost: $0.14/$0.40 per M**
+
+Complete failure across all 5 tests. Every question returned 0 tokens, no tool calls, and no response text. The agent retried 4× per question (~25s each) before giving up. Likely a tool-calling format incompatibility — OpenClaw's JSON schema may not match what this model expects. At $0.14/$0.40 per M there's no reason to pursue it further when free alternatives work correctly.
+
+**Round 5 verdict:** Gemma 4 31B is ruled out. Qwen 3.6 Plus is the best free model tested and a viable cost-free fallback.
 
 ## Current Router Configuration
 
