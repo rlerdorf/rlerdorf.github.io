@@ -20,34 +20,34 @@ Testing various models for use with OpenClaw.
 
 ## Results Summary
 
-Sorted by $/M input (cheapest first). Round 1/2 models tested on 4 prompts; Round 3/4 models tested on 5 (adds Stock). `—` = not tested or not viable.
+Sorted by $/M input (cheapest first). `—` = not tested (model incompatible with tool calling).
 
 | Model | Grocery | Rocket | Weather | General | Stock | Avg Time | $/M in | $/M out |
 |-------|---------|--------|---------|---------|-------|----------|--------|---------|
 | **Qwen 3.6 Plus (free)** | ⚠️ 22s | ⚠️ 21s | ✅ 13s | ✅ 5s | ✅ 13s | 14.6s | FREE | FREE |
-| GPT-oss-20b | ⚠️ 15s | ✅ 9s | ❌ 2s | ✅ 2s | — | 7.0s | $0.03 | $0.14 |
-| GPT-oss-120b | ❌ 17s | ✅ 14s | ✅ 13s | ✅ 8s | — | 12.8s | $0.04 | $0.19 |
+| GPT-oss-20b | ⚠️ 15s | ✅ 9s | ❌ 2s | ✅ 2s | ✅ 17s | 7.0s | $0.03 | $0.14 |
+| GPT-oss-120b | ❌ 17s | ✅ 14s | ✅ 13s | ✅ 8s | ❌ 11s | 12.8s | $0.04 | $0.19 |
 | Mistral Small 3.2 24B | ⚠️ 10.5s | ⚠️ 7.0s | ✅ 8.1s | ✅ 3.8s | ❌ 17.1s | 9.3s | $0.07 | $0.20 |
 | Qwen3 235B | ⚠️ 62.9s | ✅ 25.7s | ⚠️ 74.0s | ✅ 4.7s | ⚠️ 91.6s | 51.8s | $0.07 | $0.10 |
 | Llama 4 Scout | ❌ 5.6s | ❌ 4.4s | ❌ 6.3s | ✅ 3.9s | ❌ 9.4s | — | $0.08 | $0.30 |
-| Devstral Small | ❌ 58s | ⚠️ 50s | ❌ 53s | ✅ 2s | — | 40.9s | $0.10 | $0.30 |
+| Devstral Small | ❌ 58s | ⚠️ 50s | ❌ 53s | ✅ 2s | ❌ 124s | 40.9s | $0.10 | $0.30 |
 | Nemotron 3 Super 120B | ⚠️ 13s | ⚠️ 11s | ✅ 47s | ✅ 4s | ✅ 15s | 18.0s | $0.10 | $0.50 |
-| GPT-4o-mini | ⚠️ 35s | ✅ 16s | ⚠️ 31s | ✅ 10s | — | 22.9s | $0.15 | $0.60 |
+| GPT-4o-mini | ⚠️ 35s | ✅ 16s | ⚠️ 31s | ✅ 10s | ✅ 25s | 22.9s | $0.15 | $0.60 |
 | Mistral Small 2603 | ⚠️ 30s | ✅ 11s | ⚠️ 10s | ✅ 4s | ✅ 6s | 12.2s | $0.15 | $0.60 |
-| **Grok 4.1 Fast** | ✅ 32s | ✅ 21s | ✅ 19s | ✅ 6s | — | 19.5s | $0.20 | $0.50 |
+| **Grok 4.1 Fast** | ✅ 32s | ✅ 21s | ✅ 19s | ✅ 6s | ✅ 20s | 19.5s | $0.20 | $0.50 |
 | GPT-5.4-nano | ✅ 9s | ✅ 7s | ✅ 8s | ✅ 4s | ⚠️ 10s | 7.6s | $0.20 | $1.25 |
-| MiniMax M2 | ✅ 24s | ⚠️ 11s | ✅ 15s | ✅ 11s | — | 15.4s | $0.26 | $1.00 |
-| GLM-4.7 | ⚠️ 92s | ✅ 13s | ✅ 20s | ✅ 5s | — | 32.3s | $0.30 | $1.40 |
-| MiniMax M2.5 | ✅ 15s | ⚠️ 29s | ⚠️ 16s | ⚠️ 4s | — | 16.0s | $0.30 | $1.10 |
+| MiniMax M2 | ✅ 24s | ⚠️ 11s | ✅ 15s | ✅ 11s | ⚠️ 16s | 15.4s | $0.26 | $1.00 |
+| GLM-4.7 | ⚠️ 92s | ✅ 13s | ✅ 20s | ✅ 5s | ✅ 18s | 32.3s | $0.30 | $1.40 |
+| MiniMax M2.5 | ✅ 15s | ⚠️ 29s | ⚠️ 16s | ⚠️ 4s | ⚠️ 24s | 16.0s | $0.30 | $1.10 |
 | **MiniMax M2.7** | ✅ 20s | ✅ 15s | ✅ 16s | ✅ 6s | ✅ 14s | 14.2s | $0.30 | $1.20 |
-| GLM-4.6 | ✅ 82s | ✅ 10s | ✅ 19s | ✅ 7s | — | 29.7s | $0.35 | $1.71 |
-| Kimi K2.5 | ⚠️ 37s | ✅ 10s | ✅ 41s | ✅ 6s | — | 23.3s | $0.45 | $2.20 |
-| Gemini 3 Flash | ✅ 12s | ✅ 35s | ✅ 9s | ✅ 23s | — | 19.8s | $0.50 | $3.00 |
-| Claude Haiku 4.5 | ⚠️ 8s | ⚠️ 11s | ⚠️ 11s | ✅ 4s | — | 8.2s | $1.00 | $5.00 |
-| Qwen3 Max Thinking | ❌* 33s | ⚠️ 17s | ⚠️ 14s | ✅ 4s | — | 16.9s | $1.20 | $6.00 |
-| GPT-5.3-codex | ✅ 17s | ⚠️ 14s | ✅ 15s | ✅ 4s | — | 12.3s | $1.75 | $14.00 |
-| Gemini 3.1 Pro | ✅ 74s | ✅ 22s | ✅ 26s | ✅ 19s | — | 35.3s | $2.00 | $12.00 |
-| **Claude Sonnet 4.6** | ✅ 13s | ✅ 12s | ✅ 10s | ✅ 3s | — | **9.3s** | $3.00 | $15.00 |
+| GLM-4.6 | ✅ 82s | ✅ 10s | ✅ 19s | ✅ 7s | ✅ 25s | 29.7s | $0.35 | $1.71 |
+| Kimi K2.5 | ⚠️ 37s | ✅ 10s | ✅ 41s | ✅ 6s | ❌ 25s | 23.3s | $0.45 | $2.20 |
+| Gemini 3 Flash | ✅ 12s | ✅ 35s | ✅ 9s | ✅ 23s | ✅ 9s | 19.8s | $0.50 | $3.00 |
+| Claude Haiku 4.5 | ⚠️ 8s | ⚠️ 11s | ⚠️ 11s | ✅ 4s | ⚠️ 13s | 8.2s | $1.00 | $5.00 |
+| Qwen3 Max Thinking | ❌* 33s | ⚠️ 17s | ⚠️ 14s | ✅ 4s | ⚠️ 13s | 16.9s | $1.20 | $6.00 |
+| GPT-5.3-codex | ✅ 17s | ⚠️ 14s | ✅ 15s | ✅ 4s | ✅ 14s | 12.3s | $1.75 | $14.00 |
+| Gemini 3.1 Pro | ✅ 74s | ✅ 22s | ✅ 26s | ✅ 19s | ✅ 88s | 35.3s | $2.00 | $12.00 |
+| **Claude Sonnet 4.6** | ✅ 13s | ✅ 12s | ✅ 10s | ✅ 3s | ✅ 13s | **9.3s** | $3.00 | $15.00 |
 
 ### Failed / Not Viable
 
