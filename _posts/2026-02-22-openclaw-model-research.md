@@ -4,7 +4,7 @@ title: "OpenClaw Model Research"
 date: 2026-02-22
 ---
 
-**Updated:** 2026-04-02
+**Updated:** 2026-04-05
 
 Testing various models for use with OpenClaw.
 
@@ -32,6 +32,8 @@ Sorted by $/M input (cheapest first). `—` = not tested (model incompatible wit
 | Llama 4 Scout | ❌ 5.6s | ❌ 4.4s | ❌ 6.3s | ✅ 3.9s | ❌ 9.4s | — | $0.08 | $0.30 |
 | Devstral Small | ❌ 58s | ⚠️ 50s | ❌ 53s | ✅ 2s | ❌ 124s | 40.9s | $0.10 | $0.30 |
 | Nemotron 3 Super 120B | ⚠️ 13s | ⚠️ 11s | ✅ 47s | ✅ 4s | ✅ 15s | 18.0s | $0.10 | $0.50 |
+| **Gemma 4 26B A4B** | ✅ 19s | ✅ 9s | ✅ 10s | ⚠️ 86s | ⚠️ 20s | 28.8s | $0.13 | $0.40 |
+| Gemma 4 31B | ✅ 124s | ❌ 123s | ✅ 49s | ✅ 9s | ❌ 123s | 85.6s | $0.14 | $0.40 |
 | GPT-4o-mini | ⚠️ 35s | ✅ 16s | ⚠️ 31s | ✅ 10s | ✅ 25s | 22.9s | $0.15 | $0.60 |
 | Mistral Small 2603 | ⚠️ 30s | ✅ 11s | ⚠️ 10s | ✅ 4s | ✅ 6s | 12.2s | $0.15 | $0.60 |
 | **Grok 4.1 Fast** | ✅ 32s | ✅ 21s | ✅ 19s | ✅ 6s | ✅ 20s | 19.5s | $0.20 | $0.50 |
@@ -61,7 +63,6 @@ Sorted by $/M input (cheapest first). `—` = not tested (model incompatible wit
 | Gemini 2.5 Flash Lite — google/gemini-2.5-flash-lite | Refuses to use skill tools on every tool-required test. Grocery: "The grocery comparison tool is not available." Weather: "the tool seems to be unavailable right now." Stock: two turns, no tool calls. Only the no-tool general test passes. Fast but fundamentally broken for agent workflows. ($0.10/$0.40 per M) |
 | Llama 4 Scout — meta-llama/llama-4-scout | Catastrophically broken output. Responses include raw chat template markers (`<\|header_start\|>assistant<\|header_end\|>`) and tool calls rendered as plain text (`memory_search(query="next rocket launch")`). The model is not correctly instruction-tuned for the OpenRouter API format. ($0.08/$0.30 per M) |
 | Qwen3 235B — qwen/qwen3-235b-a22b-2507 | Correct tool routing throughout, but 25–92s per prompt and 74K–374K input tokens per query. At 51.8s average, it's unusable for real-time chat. Interesting for batch/offline tasks but not for an interactive assistant. ($0.07/$0.10 per M) |
-| Gemma 4 31B IT — google/gemma-4-31b-it | Complete failure across all 5 tests — 0 tokens, no tool calls, no response. Agent retried 4× per question (~25s each) and got nothing back. Likely a tool-calling format incompatibility with OpenClaw's schema. ($0.14/$0.40 per M) |
 
 ## Model Notes
 
@@ -245,16 +246,17 @@ Technically the most capable of the four: correct tool routing on every test, no
 
 **Round 4 verdict:** No model from this batch challenges MiniMax M2.7. MiniMax remains the best LIGHT tier option.
 
-## Round 5 Results (2026-04-02)
+## Round 5 Results (2026-04-02 / retested 2026-04-05)
 
-Round 5 tested two new models: Google's Gemma 4 31B Instruct and Qwen's new 3.6 Plus on the free tier.
+Round 5 tested three models: Qwen 3.6 Plus (free), Gemma 4 31B, and Gemma 4 26B A4B. The two Gemma models initially appeared as complete failures on April 2 (the day they were released on OpenRouter) — 0 tokens, no responses, silent retries. Retesting on April 5 confirmed this was a launch-day provider instability, not a fundamental incompatibility. Both models use the standard OpenRouter tool-calling format correctly; the AkashML/Novita providers just weren't stable at launch.
 
 ### Round 5 Benchmark Results
 
 | Model | Grocery | Rocket | Weather | General | Stock | Avg Time | $/M in/out |
 |-------|---------|--------|---------|---------|-------|----------|------------|
 | **Qwen 3.6 Plus (free)** | ⚠️ 22s | ⚠️ 21s | ✅ 13s | ✅ 5s | ✅ 13s | 14.6s | FREE |
-| Gemma 4 31B IT | ❌ 26s | ❌ 26s | ❌ 25s | ❌ 25s | ❌ 25s | 25.5s | $0.14/$0.40 |
+| **Gemma 4 26B A4B** | ✅ 19s | ✅ 9s | ✅ 10s | ⚠️ 86s | ⚠️ 20s | 28.8s | $0.13/$0.40 |
+| Gemma 4 31B | ✅ 124s | ❌ 123s | ✅ 49s | ✅ 9s | ❌ 123s | 85.6s | $0.14/$0.40 |
 
 ### Qwen 3.6 Plus — qwen/qwen3.6-plus:free 🆕 Free tier candidate
 **Score: 3/5 (2⚠️) | Avg: 14.6s | Cost: FREE | Tokens: ~504K in / 3K out**
@@ -267,12 +269,25 @@ Compared to Arcee Trinity (the previous best free model, which timed out on groc
 
 **Verdict:** Viable fallback for the LIGHT tier when cost is the primary constraint. Not switching from MiniMax M2.7, but worth keeping as a named fallback option.
 
-### Gemma 4 31B IT — google/gemma-4-31b-it 🆕 ❌ Ruled out
-**Score: 0/5 | Avg: 25.5s | Cost: $0.14/$0.40 per M**
+### Gemma 4 26B A4B — google/gemma-4-26b-a4b-it 🆕
+**Score: 3/5 (2⚠️) | Avg: 28.8s | Cost: $0.13/$0.40 per M**
 
-Complete failure across all 5 tests. Every question returned 0 tokens, no tool calls, and no response text. The agent retried 4× per question (~25s each) before giving up. Likely a tool-calling format incompatibility — OpenClaw's JSON schema may not match what this model expects. At $0.14/$0.40 per M there's no reason to pursue it further when free alternatives work correctly.
+MoE variant: 25.2B total parameters, 3.8B active per token. Grocery, rocket, and weather all pass cleanly and quickly (9–19s). The two WARNs are more concerning than Qwen's minor issues: stock hit a tool error and fell back to web_search for supplemental data (right answer, wrong path), and the general knowledge test went completely off the rails — it fired memory_search 3 times (all errors), burned 86s and 37K tokens, then hallucinated an answer about a flight instead of answering "Copenhagen". That's not a chattiness ding; that's context confusion.
 
-**Round 5 verdict:** Gemma 4 31B is ruled out. Qwen 3.6 Plus is the best free model tested and a viable cost-free fallback.
+**Natural prompt test (2026-04-05):** Q1 (Christine's flight): correctly checked FLIGHTS.md and reported no flight found — good. Q2 (run timing): pulled real forecast, gave a specific 8 AM recommendation with temperature data — solid. Q3 (weekend events): gave some local Jupiter events but also injected Waterloo, ON info (for Carl, from session context), blurring boundaries between users. Total: $0.019 for 3 questions in 222s.
+
+**Verdict:** Fast and cheap when it stays on track, but the context confusion on general knowledge and the cross-user bleed in Q3 are reliability concerns. Not competitive with MiniMax M2.7 for the LIGHT tier.
+
+### Gemma 4 31B — google/gemma-4-31b-it 🆕
+**Score: 3/5 (2❌) | Avg: 85.6s | Cost: $0.14/$0.40 per M**
+
+Dense 30.7B model. Tool calling works, but speed is the fundamental problem. Grocery took 124s (nearly hit the timeout), weather 49s, and both rocket and stock timed out at 123s — the model was still mid-run when the clock expired. The two timeouts aren't flaky failures; the model is simply too slow for interactive chat. General knowledge at 9s shows it can be fast on trivial queries, but anything requiring multi-turn tool use pushes into territory where users would have already given up.
+
+**Natural prompt test (2026-04-05):** Q1 (Christine's flight): failed — 5 turns, 175s, no response. Q2 (run timing): correct and detailed, but took 399s across 9 turns — nearly 7 minutes for one question. Q3 (weekend events): responded in 84s but referenced "March 14" events, hallucinating stale data rather than checking current sources. Total: $0.036 for 3 questions in 658s (~11 minutes).
+
+**Verdict:** Not viable for interactive use. The same density that likely gives it good reasoning also makes it too slow. The MoE sibling (26B A4B) is faster at the same price point.
+
+**Round 5 verdict:** Qwen 3.6 Plus is the best free model tested. Gemma 4 26B A4B is faster than 31B but has reliability concerns. Neither displaces MiniMax M2.7.
 
 ## Current Router Configuration
 
